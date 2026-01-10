@@ -10,6 +10,13 @@ from typing import TypedDict, List, Dict, Any, Optional
 from langgraph.graph import StateGraph, START, END
 from langchain_anthropic import ChatAnthropic
 from langchain_core.messages import HumanMessage
+from langfuse.langchain import CallbackHandler
+
+os.environ["LANGFUSE_PUBLIC_KEY"] = "PK" 
+os.environ["LANGFUSE_SECRET_KEY"] = "SK"
+os.environ["LANGFUSE_HOST"] = "https://cloud.langfuse.com"
+
+langfuse_handler = CallbackHandler()
 
 class EmailState(TypedDict):
     # The email being processed
@@ -35,7 +42,8 @@ model =ChatAnthropic(
     anthropic_api_key=os.environ.get("ANTHROPIC_API_KEY"),
     model="claude-haiku-4-5-20251001",
     temperature=0.7,
-    max_tokens=1024
+    max_tokens=1024,
+    callbacks=[langfuse_handler]
 )
 
 def read_email(state: EmailState):
@@ -228,7 +236,8 @@ spam_result = compiled_graph.invoke(
         "email_category": None,
         "email_draft": None,
         "messages": []
-    }
+    },
+    config={"callbacks": [langfuse_handler]}
 )
 
 # Process the legitimate email
@@ -241,7 +250,8 @@ legitimate_result = compiled_graph.invoke(
     "email_category": None,
     "email_draft": None,
     "messages": []
-    }
+    },
+    config={"callbacks": [langfuse_handler]}
 )
 
 
