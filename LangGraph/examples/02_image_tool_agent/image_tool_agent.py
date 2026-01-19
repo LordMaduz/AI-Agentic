@@ -1,26 +1,40 @@
+"""
+Image Tool Agent - Multimodal agent with vision capabilities and tool calling.
 
-# Installations
-# pip install langgraph langchain_openai langchain_core
+This agent can extract text from images and perform calculations using Claude's
+vision capabilities combined with LangGraph's tool integration.
 
+Installations:
+    pip install langgraph langchain-anthropic langchain-core langfuse python-dotenv
+
+Environment Variables Required:
+    ANTHROPIC_API_KEY - Your Anthropic API key
+    LANGFUSE_PUBLIC_KEY - (Optional) Langfuse public key for tracing
+    LANGFUSE_SECRET_KEY - (Optional) Langfuse secret key for tracing
+    LANGFUSE_HOST - (Optional) Langfuse host URL
+"""
 
 import os
 import base64
 
+from dotenv import load_dotenv
 from typing import List, TypedDict, Annotated, Optional
 from langchain_anthropic import ChatAnthropic
 from langchain_core.messages import HumanMessage
-from langfuse.langchain import CallbackHandler
 from langchain_core.messages import AnyMessage, SystemMessage, HumanMessage
 from langgraph.graph.message import add_messages
 from langgraph.graph import START, StateGraph
 from langgraph.prebuilt import ToolNode, tools_condition
 from IPython.display import Image, display
 
-os.environ["LANGFUSE_PUBLIC_KEY"] = "PK" 
-os.environ["LANGFUSE_SECRET_KEY"] = "SK"
-os.environ["LANGFUSE_HOST"] = "https://cloud.langfuse.com"
+# Load environment variables from .env file
+load_dotenv()
 
-langfuse_handler = CallbackHandler()
+# Optional: Langfuse tracing (only initialize if credentials are provided)
+langfuse_handler = None
+if os.environ.get("LANGFUSE_PUBLIC_KEY") and os.environ.get("LANGFUSE_SECRET_KEY"):
+    from langfuse.langchain import CallbackHandler
+    langfuse_handler = CallbackHandler()
 
 class AgentState(TypedDict):
     # The document provided
@@ -28,12 +42,12 @@ class AgentState(TypedDict):
     messages: Annotated[list[AnyMessage], add_messages]
 
 # Initialize our LLM
-vision_llm =ChatAnthropic(
-    anthropic_api_key="API_KEY",
+vision_llm = ChatAnthropic(
+    anthropic_api_key=os.environ.get("ANTHROPIC_API_KEY"),
     model="claude-haiku-4-5-20251001",
     temperature=0.7,
     max_tokens=1024,
-    callbacks=[langfuse_handler]
+    callbacks=[langfuse_handler] if langfuse_handler else []
 )
 
 def extract_text(img_path: str) -> str:
@@ -96,11 +110,11 @@ tools = [
 ]
 
 llm = ChatAnthropic(
-    anthropic_api_key="API_KEY",
+    anthropic_api_key=os.environ.get("ANTHROPIC_API_KEY"),
     model="claude-haiku-4-5-20251001",
     temperature=0.7,
     max_tokens=1024,
-    callbacks=[langfuse_handler]
+    callbacks=[langfuse_handler] if langfuse_handler else []
 )
 
 llm_with_tools = llm.bind_tools(tools, parallel_tool_calls=False)
@@ -149,9 +163,10 @@ react_graph = builder.compile()
 display(Image(react_graph.get_graph(xray=True).draw_mermaid_png()))
 
 messages = [HumanMessage(content="Divide 6790 by 5")]
+config = {"callbacks": [langfuse_handler]} if langfuse_handler else {}
 messages = react_graph.invoke(
     input={"messages": messages, "input_file": None},
-    config={"callbacks": [langfuse_handler]}
+    config=config
 )
 
 # Show the messages

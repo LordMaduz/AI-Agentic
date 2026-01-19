@@ -1,0 +1,21 @@
+# Core LangGraph
+langgraph>=0.2.0
+
+# LangChain ecosystem
+langchain>=0.3.0
+langchain-core>=0.3.0
+langchain-anthropic>=0.2.0
+langchain-openai>=0.2.0
+
+# Type extensions
+typing-extensions>=4.0.0
+
+# Observability (optional)
+langfuse>=2.0.0
+
+# Utilities
+python-dotenv>=1.0.0
+ipython>=8.0.0
+
+# For Jupyter notebook support
+jupyter>=1.0.0

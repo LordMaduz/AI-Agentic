@@ -1,22 +1,33 @@
+"""
+Email Classification Agent (Claude/Anthropic Version)
 
-# Installations
-# pip install -U langchain-anthropic
-# pip install -q langfuse
-# pip install langchain
+A multi-node workflow for email spam detection and response drafting using Claude.
 
+Installations:
+    pip install langgraph langchain-anthropic langfuse python-dotenv
+
+Environment Variables Required:
+    ANTHROPIC_API_KEY - Your Anthropic API key
+    LANGFUSE_PUBLIC_KEY - (Optional) Langfuse public key for tracing
+    LANGFUSE_SECRET_KEY - (Optional) Langfuse secret key for tracing
+    LANGFUSE_HOST - (Optional) Langfuse host URL
+"""
 
 import os
+from dotenv import load_dotenv
 from typing import TypedDict, List, Dict, Any, Optional
 from langgraph.graph import StateGraph, START, END
 from langchain_anthropic import ChatAnthropic
 from langchain_core.messages import HumanMessage
-from langfuse.langchain import CallbackHandler
 
-os.environ["LANGFUSE_PUBLIC_KEY"] = "PK" 
-os.environ["LANGFUSE_SECRET_KEY"] = "SK"
-os.environ["LANGFUSE_HOST"] = "https://cloud.langfuse.com"
+# Load environment variables from .env file
+load_dotenv()
 
-langfuse_handler = CallbackHandler()
+# Optional: Langfuse tracing (only initialize if credentials are provided)
+langfuse_handler = None
+if os.environ.get("LANGFUSE_PUBLIC_KEY") and os.environ.get("LANGFUSE_SECRET_KEY"):
+    from langfuse.langchain import CallbackHandler
+    langfuse_handler = CallbackHandler()
 
 class EmailState(TypedDict):
     # The email being processed
@@ -38,12 +49,12 @@ class EmailState(TypedDict):
     messages: List[Dict[str, Any]]  # Track conversation with LLM for analysis
 
 # Initialize our LLM
-model =ChatAnthropic(
+model = ChatAnthropic(
     anthropic_api_key=os.environ.get("ANTHROPIC_API_KEY"),
     model="claude-haiku-4-5-20251001",
     temperature=0.7,
     max_tokens=1024,
-    callbacks=[langfuse_handler]
+    callbacks=[langfuse_handler] if langfuse_handler else []
 )
 
 def read_email(state: EmailState):
@@ -226,6 +237,9 @@ legitimate_email = {
 }
 
 
+# Configure callbacks for tracing
+config = {"callbacks": [langfuse_handler]} if langfuse_handler else {}
+
 # Process the spam email
 print("\nProcessing spam email...")
 spam_result = compiled_graph.invoke(
@@ -237,21 +251,21 @@ spam_result = compiled_graph.invoke(
         "email_draft": None,
         "messages": []
     },
-    config={"callbacks": [langfuse_handler]}
+    config=config
 )
 
 # Process the legitimate email
 print("\nProcessing legitimate email...")
 legitimate_result = compiled_graph.invoke(
     input={
-    "email": legitimate_email,
-    "is_spam": None,
-    "spam_reason": None,
-    "email_category": None,
-    "email_draft": None,
-    "messages": []
+        "email": legitimate_email,
+        "is_spam": None,
+        "spam_reason": None,
+        "email_category": None,
+        "email_draft": None,
+        "messages": []
     },
-    config={"callbacks": [langfuse_handler]}
+    config=config
 )
 
 

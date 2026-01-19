@@ -1,12 +1,24 @@
+"""
+Email Classification Agent (OpenAI Version)
 
-# Installations
-# pip install langgraph langchain_openai
+A multi-node workflow for email spam detection and response drafting using OpenAI.
+
+Installations:
+    pip install langgraph langchain-openai python-dotenv
+
+Environment Variables Required:
+    OPENAI_API_KEY - Your OpenAI API key
+"""
 
 import os
+from dotenv import load_dotenv
 from typing import TypedDict, List, Dict, Any, Optional
 from langgraph.graph import StateGraph, START, END
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage
+
+# Load environment variables from .env file
+load_dotenv()
 
 class EmailState(TypedDict):
     # The email being processed
