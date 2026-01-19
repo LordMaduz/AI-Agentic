@@ -1,0 +1,30 @@
+# Core
+smolagents
+huggingface_hub
+
+# Web search (Examples 01, 03, 04, 05)
+duckduckgo-search
+
+# Data processing (Examples 04, 05)
+pandas
+numpy
+
+# Image processing (Examples 04, 05)
+pillow
+
+# Visualization (Example 05)
+plotly
+kaleido
+geopandas
+shapely
+
+# RAG - LangChain integration (Example 06)
+langchain-community
+langchain-text-splitters
+rank-bm25
+
+# OpenAI integration (Example 05)
+openai
+
+# MCP support (Example 07)
+# Install separately: pip install "smolagents[mcp]"
