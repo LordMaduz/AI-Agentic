@@ -1,11 +1,15 @@
+"""
+Basic Graph Example
 
-# Installations
-# pip install typing-extensions
-# pip install ipython
-# pip install langgraph
-# pip install jupyter ipython
+Introduction to LangGraph's StateGraph pattern with conditional routing.
+This example demonstrates how to build a simple state machine with nodes
+and edges, including conditional branching.
 
+Installations:
+    pip install langgraph typing-extensions ipython
 
+No environment variables required for this example.
+"""
 
 from typing_extensions import TypedDict
 import random
