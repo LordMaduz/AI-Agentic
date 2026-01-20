@@ -51,7 +51,3 @@ ANTHROPIC_API_KEY=your_key
 OPENAI_API_KEY=your_key
 HF_TOKEN=your_huggingface_token
 ```
-
-## License
-
-MIT
